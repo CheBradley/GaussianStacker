@@ -20,7 +20,7 @@ from astropy import visualization
 from astropy.io import fits
 from mpl_toolkits.mplot3d import Axes3D
 plt.style.use(visualization.astropy_mpl_style)
-np.set_printoptions(threshold=sys.maxsize) #allows me to see all the data without truncation
+np.set_printoptions(threshold=sys.maxsize) #allows user to see all the data without truncation
 #np.set_printoptions(threshold=10)
 
 folder = input("What is the name of the folder with the images?: ")
@@ -68,12 +68,10 @@ def fitgaussian(matrix, guess_prms):
 	# We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
 	xdata = np.vstack((X.ravel(), Y.ravel()))
 	
-	# Do the fit, using our custom _gaussian function which understands our
-	# flattened (ravelled) ordering of the data points.
 	popt, pcov = curve_fit(_gaussian, xdata, matrix.ravel(), p0, bounds=(0, [sizeim, sizeim/2+1,sizeim/2+1, 3,3]) ,maxfev=50000)
 	fitted_gaussian = gaussianfit(X, Y, *popt)
-	#~ print('Fitted parameters:')
-	#~ print(popt)
+	print('Fitted parameters:')
+	print(popt)
 	return (fitted_gaussian, popt, X, Y, pcov)
 	
 
@@ -88,12 +86,8 @@ for QSOnum in range(numQSOs):
 	QSO[QSOnum,:,:] = data
 
 
-#you can open files or get their data
-#im not sure what opening does, but you want to use fits.getdata
-
 badvals = []
-#showcontours = input('Do you want to show individual contours? Type "y" for yes or "n" for no: ')
-showcontours = 'n'
+showcontours = input('Do you want to show individual contours? Type "y" for yes or "n" for no: ')
 if showcontours == 'y':
 	for imnum in range(numQSOs): 
 		matrix = QSO[imnum,:,:]
@@ -128,29 +122,6 @@ if showcontours == 'y':
 
 
 guess_prms = [.001, sizeim/2, sizeim/2, 1.8, 1.8]
-#~ for imnum in range(numQSOs):
-	#~ cutoff = (imnum+1)%64
-	#~ if cutoff == 1:
-		#~ #figs_gaussian = plt.figure()
-		#~ #figs_3D = plt.figure()
-	#~ if cutoff == 0:
-		#~ cutoff = 64
-	#~ matrix = QSO[imnum,:,:]
-	#~ name = str(files[imnum])
-	#~ name = name.replace('.fits', '')
-	#~ print(name + '('+str(imnum)+')')
-	#~ output = fitgaussian(matrix, guess_prms)
-	#~ fitted_gaussian = output[0]
-	#~ popt = output[1]
-	#~ X = output[2]
-	#~ Y = output[3]
-	#~ pcov = output[4]
-	#~ print('pcov tester = ',pcov)
-	
-	# Plot the test data as a 2D image and the fit as overlaid contours.
-	#~ axgauss = figs_gaussian.add_subplot(sizeplot,sizeplot,cutoff)
-	#~ axgauss.imshow(matrix, origin='bottom', cmap='plasma')
-	#~ axgauss.contour(X, Y, fitted_gaussian, colors='w')
 
 
 stacked_matrix = np.median(QSO, axis = 0)
@@ -205,17 +176,8 @@ else:
 	upperbound = math.ceil(sizeim/2)
 	
 nbounds = ([perr[0],lowerbound,lowerbound,0,0,0],[sizeim,upperbound,upperbound,1.8,1.8,amplitude])
-#~ print('nbounds:')
-#~ print(nbounds)
-#~ print('newparams:')
-#~ print(newparams)
-#~ print('np0:')
-#~ print(np0)
-#~ print()
 
 newpopt, newpcov = curve_fit(_gaussian, xdata, fitted_stacked_gaussian.ravel(), newparams, bounds = nbounds, maxfev = 50000) 
-#~ print('newpopt:')
-#~ print(newpopt)
 new_fitted_gaussian = gaussianfit(X, Y, *newpopt) + Icov
 
 newfig = plt.figure()
@@ -230,8 +192,10 @@ ax.plot_surface(X, Y, stacked_matrix, cmap = 'gist_heat', alpha = 0.5)
 ax.plot_surface(X, Y, new_fitted_gaussian,  cmap='plasma')
 ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_stacked_gaussian))
 
-#~ hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
-#~ hdu.writeto("gausstester2.fits")
+#creates a fits file from the stacked image
+hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
+imagename = input('What do you want to call the image? ')
+hdu.writeto(name + ".fits")
 
 
 
