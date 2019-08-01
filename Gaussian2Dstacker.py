@@ -28,6 +28,8 @@ folder = input("What is the name of the folder with the images?: ")
 sys.path.append("/" + folder)
 files = sorted(os.listdir(folder))
 
+imagename = input('What do you want to call the image? ')
+
 def gaussianfit(x,y,*args):
 	"""
 	This function makes an idealized gaussian with the given parameters,
@@ -203,7 +205,6 @@ ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_s
 
 #creates a fits file from the stacked image
 hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
-imagename = input('What do you want to call the image? ')
 hdu.writeto(name + ".fits")
 
 plt.show()
