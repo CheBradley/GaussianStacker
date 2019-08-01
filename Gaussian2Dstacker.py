@@ -10,6 +10,7 @@ import matplotlib.cm as cm
 import scipy.stats as stats
 import scipy
 
+from matplotlib.backends.backend_pdf import PdfPages
 from astropy.stats import sigma_clip
 from scipy.optimize import curve_fit
 from astropy.modeling import models, fitting
@@ -93,20 +94,22 @@ for imnum in range(numQSOs):
 		badvals.append(imnum)
 	elif np.any(np.isinf(matrix)):
 		badvals.append(imnum)
-QSO = np.delete(QSO,badvals,0)			
+
+QSO = np.delete(QSO,badvals,0)
+			
 numQSOs = len(QSO)
 
-print('Do you want to show individual images? (not recommended for large datasets)')
-showcontours = input('Type "y" for yes or "n" for no: ')
-if showcontours == 'y':
-	if numQSOs > 64:
-		sizeplot = 8
-		numfigs = math.ceil(numQSOs/64)
-	else:
-		numfigs = 1
-		sizeplot = math.ceil(math.sqrt(numQSOs))
-		
+print('Would you like to show individual images? (Not recommended for large datasets)')
+showimages = input('Type "y" for yes or "n" for no: ')
 
+print('Would you like to create a pdf with all of the figures?')
+createpdf = input('Type "y" for yes or "n" for no: ')
+
+if numQSOs > 64:
+	sizeplot = 8
+else:
+	sizeplot = math.ceil(math.sqrt(numQSOs))
+with PdfPages(folder+'.pdf') as pdf:
 	for imnum in range(numQSOs):
 		cutoff = (imnum+1)%64
 		if cutoff == 1:
@@ -114,14 +117,20 @@ if showcontours == 'y':
 		if cutoff == 0:
 			cutoff = 64
 		axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
+		axis.set_xticklabels([]) #hide labels
+		axis.set_yticklabels([])
+		axis.grid(False) #hide gridlines
 		axis.imshow(QSO[imnum,:,:])
 		name = str(files[imnum])
 		name = name.replace('.fits', '')
-		plt.gca().set_title(name + '('+str(imnum)+')', fontsize = 6)
-
+		plt.gca().set_title(name + '('+str(imnum)+')', fontsize = 3)
+		if createpdf == 'y':
+			if cutoff == 64 or imnum == numQSOs-1:
+				pdf.savefig(allfigs)
+if showimages == 'n':
+	plt.close('all')
 
 guess_prms = [.001, sizeim/2, sizeim/2, 1.8, 1.8]
-
 
 stacked_matrix = np.median(QSO, axis = 0)
 
@@ -177,6 +186,7 @@ else:
 nbounds = ([perr[0],lowerbound,lowerbound,0,0,0],[sizeim,upperbound,upperbound,1.8,1.8,amplitude])
 
 newpopt, newpcov = curve_fit(_gaussian, xdata, fitted_stacked_gaussian.ravel(), newparams, bounds = nbounds, maxfev = 50000) 
+
 new_fitted_gaussian = gaussianfit(X, Y, *newpopt) + Icov
 
 newfig = plt.figure()
@@ -185,8 +195,8 @@ newax = newfig.add_subplot(111)
 newax.imshow(stacked_matrix, cmap = 'plasma')
 newax.contour(X, Y, new_fitted_gaussian, colors='w')
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
+new3Dfig = plt.figure()
+ax = new3Dfig.gca(projection='3d')
 ax.plot_surface(X, Y, stacked_matrix, cmap = 'gist_heat', alpha = 0.5)
 ax.plot_surface(X, Y, new_fitted_gaussian,  cmap='plasma')
 ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_stacked_gaussian))
@@ -195,7 +205,5 @@ ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_s
 hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
 imagename = input('What do you want to call the image? ')
 hdu.writeto(name + ".fits")
-
-
 
 plt.show()
