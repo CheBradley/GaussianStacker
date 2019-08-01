@@ -29,6 +29,12 @@ sys.path.append("/" + folder)
 files = sorted(os.listdir(folder))
 imagename = input('What do you want to call the final stacked image? ')
 
+print('Would you like to show individual images? (Not recommended for large datasets)')
+showimages = input('Type "y" for yes or "n" for no: ')
+
+print('Would you like to create a pdf with all of the figures?')
+createpdf = input('Type "y" for yes or "n" for no: ')
+
 def gaussianfit(x,y,*args):
 	"""
 	This function makes an idealized gaussian with the given parameters,
@@ -100,11 +106,6 @@ QSO = np.delete(QSO,badvals,0)
 			
 numQSOs = len(QSO)
 
-print('Would you like to show individual images? (Not recommended for large datasets)')
-showimages = input('Type "y" for yes or "n" for no: ')
-
-print('Would you like to create a pdf with all of the figures?')
-createpdf = input('Type "y" for yes or "n" for no: ')
 
 if numQSOs > 64:
 	sizeplot = 8
