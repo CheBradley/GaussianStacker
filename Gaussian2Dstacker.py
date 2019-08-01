@@ -27,8 +27,7 @@ np.set_printoptions(threshold=sys.maxsize) #allows user to see all the data with
 folder = input("What is the name of the folder with the images?: ")
 sys.path.append("/" + folder)
 files = sorted(os.listdir(folder))
-
-imagename = input('What do you want to call the image? ')
+imagename = input('What do you want to call the final stacked image? ')
 
 def gaussianfit(x,y,*args):
 	"""
@@ -111,13 +110,37 @@ if numQSOs > 64:
 	sizeplot = 8
 else:
 	sizeplot = math.ceil(math.sqrt(numQSOs))
-with PdfPages(folder+'.pdf') as pdf:
+				
+if createpdf == 'y':
+	with PdfPages(folder+'.pdf') as pdf:
+		for imnum in range(numQSOs):
+			cutoff = (imnum+1)%64
+			if cutoff == 1:
+				allfigs = plt.figure()
+			if cutoff == 0:
+				cutoff = 64
+			plt.subplots_adjust(wspace=0, hspace=0.5, right = .9, left = .1, top = .9, bottom = .1)
+			axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
+			axis.set_xticklabels([]) #hide labels
+			axis.set_yticklabels([])
+			axis.grid(False) #hide gridlines
+			axis.imshow(QSO[imnum,:,:])
+			name = str(files[imnum])
+			name = name.replace('.fits', '')
+			axis.set_title(name + '('+str(imnum)+')', size=4)
+			if cutoff == 64 or imnum == numQSOs-1:
+				pdf.savefig(allfigs)
+			if showimages == 'n':
+				plt.close('all')
+
+if createpdf == 'n':
 	for imnum in range(numQSOs):
 		cutoff = (imnum+1)%64
 		if cutoff == 1:
 			allfigs = plt.figure()
 		if cutoff == 0:
 			cutoff = 64
+		plt.subplots_adjust(wspace=0, hspace=0.5, right = .9, left = .1, top = .9, bottom = .1)
 		axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
 		axis.set_xticklabels([]) #hide labels
 		axis.set_yticklabels([])
@@ -125,12 +148,12 @@ with PdfPages(folder+'.pdf') as pdf:
 		axis.imshow(QSO[imnum,:,:])
 		name = str(files[imnum])
 		name = name.replace('.fits', '')
-		plt.gca().set_title(name + '('+str(imnum)+')', fontsize = 3)
-		if createpdf == 'y':
-			if cutoff == 64 or imnum == numQSOs-1:
-				pdf.savefig(allfigs)
+		axis.set_title(name + '('+str(imnum)+')', size=4)
 		if showimages == 'n':
 			plt.close('all')
+	
+
+
 
 guess_prms = [.001, sizeim/2, sizeim/2, 1.8, 1.8]
 
@@ -205,6 +228,6 @@ ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_s
 
 #creates a fits file from the stacked image
 hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
-hdu.writeto(name + ".fits")
+hdu.writeto(imagename + ".fits")
 
 plt.show()
