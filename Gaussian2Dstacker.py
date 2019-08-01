@@ -85,21 +85,19 @@ for QSOnum in range(numQSOs):
 	data = fits.getdata(folder+"/"+files[QSOnum])
 	QSO[QSOnum,:,:] = data
 
-
+#removes all nan and infs
 badvals = []
+for imnum in range(numQSOs): 
+	matrix = QSO[imnum,:,:]
+	if np.any(np.isnan(matrix)):
+		badvals.append(imnum)
+	elif np.any(np.isinf(matrix)):
+		badvals.append(imnum)
+QSO = np.delete(QSO,badvals,0)			
+numQSOs = len(QSO)
+
 showcontours = input('Do you want to show individual contours? Type "y" for yes or "n" for no: ')
 if showcontours == 'y':
-	for imnum in range(numQSOs): 
-		matrix = QSO[imnum,:,:]
-		if np.any(np.isnan(matrix)):
-			badvals.append(imnum)
-		elif np.any(np.isinf(matrix)):
-			badvals.append(imnum)
-
-	QSO = np.delete(QSO,badvals,0)
-			
-	numQSOs = len(QSO)
-
 	if numQSOs > 64:
 		sizeplot = 8
 		numfigs = math.ceil(numQSOs/64)
