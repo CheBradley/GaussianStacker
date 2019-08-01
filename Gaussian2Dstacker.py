@@ -127,8 +127,8 @@ with PdfPages(folder+'.pdf') as pdf:
 		if createpdf == 'y':
 			if cutoff == 64 or imnum == numQSOs-1:
 				pdf.savefig(allfigs)
-if showimages == 'n':
-	plt.close('all')
+		if showimages == 'n':
+			plt.close('all')
 
 guess_prms = [.001, sizeim/2, sizeim/2, 1.8, 1.8]
 
