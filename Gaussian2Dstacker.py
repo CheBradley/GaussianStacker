@@ -96,7 +96,8 @@ for imnum in range(numQSOs):
 QSO = np.delete(QSO,badvals,0)			
 numQSOs = len(QSO)
 
-showcontours = input('Do you want to show individual contours? Type "y" for yes or "n" for no: ')
+print('Do you want to show individual images? (not recommended for large datasets)')
+showcontours = input('Type "y" for yes or "n" for no: ')
 if showcontours == 'y':
 	if numQSOs > 64:
 		sizeplot = 8
