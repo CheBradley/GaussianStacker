@@ -27,13 +27,19 @@ np.set_printoptions(threshold=sys.maxsize) #allows user to see all the data with
 folder = input("What is the name of the folder with the images?: ")
 sys.path.append("/" + folder)
 files = sorted(os.listdir(folder))
-imagename = input('What do you want to call the final stacked image? ')
-
 print('Would you like to show individual images? (Not recommended for large datasets)')
 showimages = input('Type "y" for yes or "n" for no: ')
 
 print('Would you like to create a pdf with all of the figures?')
 createpdf = input('Type "y" for yes or "n" for no: ')
+print('Would you like small, medium, or large images?')
+size = input('s for small, m for medium, or l for large: ')
+if size == 's' or 'small':
+	images = 64
+elif size == 'm' or 'medium':
+	images = 49
+elif size == 'l' or 'large':
+	images = 25
 
 def gaussianfit(x,y,*args):
 	"""
@@ -106,21 +112,20 @@ QSO = np.delete(QSO,badvals,0)
 			
 numQSOs = len(QSO)
 
-
-if numQSOs > 64:
-	sizeplot = 8
+if numQSOs > images:
+	sizeplot = np.sqrt(images)
 else:
 	sizeplot = math.ceil(math.sqrt(numQSOs))
 				
 if createpdf == 'y':
 	with PdfPages(folder+'.pdf') as pdf:
 		for imnum in range(numQSOs):
-			cutoff = (imnum+1)%64
+			cutoff = (imnum+1)%images
 			if cutoff == 1:
 				allfigs = plt.figure()
 			if cutoff == 0:
-				cutoff = 64
-			plt.subplots_adjust(wspace=0, hspace=0.5, right = .9, left = .1, top = .9, bottom = .1)
+				cutoff = images
+			plt.subplots_adjust(wspace=0, hspace=0.5, right = .95, left = .05, top = .9, bottom = .1)
 			axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
 			axis.set_xticklabels([]) #hide labels
 			axis.set_yticklabels([])
@@ -128,19 +133,19 @@ if createpdf == 'y':
 			axis.imshow(QSO[imnum,:,:])
 			name = str(files[imnum])
 			name = name.replace('.fits', '')
-			axis.set_title(name + '('+str(imnum)+')', size=4)
-			if cutoff == 64 or imnum == numQSOs-1:
+			axis.set_title(name + '('+str(imnum+1)+')', size=4)
+			if cutoff == images or imnum == numQSOs-1:
 				pdf.savefig(allfigs)
 			if showimages == 'n':
 				plt.close('all')
 
 if createpdf == 'n':
 	for imnum in range(numQSOs):
-		cutoff = (imnum+1)%64
+		cutoff = (imnum+1)%images
 		if cutoff == 1:
 			allfigs = plt.figure()
 		if cutoff == 0:
-			cutoff = 64
+			cutoff = images
 		plt.subplots_adjust(wspace=0, hspace=0.5, right = .9, left = .1, top = .9, bottom = .1)
 		axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
 		axis.set_xticklabels([]) #hide labels
@@ -149,7 +154,7 @@ if createpdf == 'n':
 		axis.imshow(QSO[imnum,:,:])
 		name = str(files[imnum])
 		name = name.replace('.fits', '')
-		axis.set_title(name + '('+str(imnum)+')', size=4)
+		axis.set_title(name + '('+str(imnum+1)+')', size=4)
 		if showimages == 'n':
 			plt.close('all')
 	
@@ -229,6 +234,6 @@ ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_s
 
 #creates a fits file from the stacked image
 hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
-hdu.writeto(imagename + ".fits")
+hdu.writeto(folder + "stacked.fits")
 
 plt.show()
