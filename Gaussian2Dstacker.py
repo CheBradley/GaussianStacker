@@ -110,7 +110,7 @@ if numQSOs > images:
 else:
 	sizeplot = math.ceil(math.sqrt(numQSOs))
 				
-if createpdf == 'y' or 'yes' or 'Yes':
+if createpdf == 'y' or createpdf == 'yes' or createpdf == 'Yes':
 	with PdfPages(folder+'.pdf') as pdf:
 		for imnum in range(numQSOs):
 			cutoff = (imnum+1)%images
@@ -129,26 +129,25 @@ if createpdf == 'y' or 'yes' or 'Yes':
 			axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
 			if cutoff == images or imnum == numQSOs-1:
 				pdf.savefig(allfigs)
-			if showimages == 'n' or 'no' or 'No':
-				plt.close('all')
+			if showimages == 'n' or showimages == 'no' or showimages == 'No':
+				plt.close("all")
 
-if createpdf == 'n' or 'no' or 'No':
-	if showimages == 'y' or 'yes' or 'Yes':
-		for imnum in range(numQSOs):
-			cutoff = (imnum+1)%images
-			if cutoff == 1:
-				allfigs = plt.figure()
-			if cutoff == 0:
-				cutoff = images
-			plt.subplots_adjust(wspace=0, hspace=0.5, right = .9, left = .1, top = .9, bottom = .1)
-			axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
-			axis.set_xticklabels([]) #hide labels
-			axis.set_yticklabels([])
-			axis.grid(False) #hide gridlines
-			axis.imshow(QSO[imnum,:,:])
-			name = str(files[imnum])
-			name = name.replace('.fits', '')
-			axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
+if showimages == 'y' or showimages == 'yes' or showimages == 'Yes':
+	for imnum in range(numQSOs):
+		cutoff = (imnum+1)%images
+		if cutoff == 1:
+			allfigs = plt.figure()
+		if cutoff == 0:
+			cutoff = images
+		plt.subplots_adjust(wspace=0, hspace=0.5, right = .9, left = .1, top = .9, bottom = .1)
+		axis = allfigs.add_subplot(sizeplot,sizeplot,cutoff)
+		axis.set_xticklabels([]) #hide labels
+		axis.set_yticklabels([])
+		axis.grid(False) #hide gridlines
+		axis.imshow(QSO[imnum,:,:])
+		name = str(files[imnum])
+		name = name.replace('.fits', '')
+		axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
 	
 
 
