@@ -3,15 +3,12 @@ import sys
 import os
 import numpy as np
 import math
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-import scipy.stats as stats
 import scipy
 
+from matplotlib import colors, cm
 from matplotlib.backends.backend_pdf import PdfPages
-from astropy.stats import sigma_clip
 from scipy.optimize import curve_fit
 from astropy.modeling import models, fitting
 from numpy import zeros
@@ -21,24 +18,20 @@ from astropy import visualization
 from astropy.io import fits
 from mpl_toolkits.mplot3d import Axes3D
 plt.style.use(visualization.astropy_mpl_style)
-np.set_printoptions(threshold=sys.maxsize) #allows user to see all the data without truncation
-#np.set_printoptions(threshold=10)
 
 folder = input("What is the name of the folder with the images?: ")
 sys.path.append("/" + folder)
 files = sorted(os.listdir(folder))
-print('Would you like to show individual images? (Not recommended for large datasets)')
-showimages = input('Type "y" for yes or "n" for no: ')
+showimages = input('Show individual images? (Not recommended for large datasets): ')
 
-print('Would you like to create a pdf with all of the figures?')
-createpdf = input('Type "y" for yes or "n" for no: ')
-print('Would you like small, medium, or large images?')
-size = input('s for small, m for medium, or l for large: ')
-if size == 's' or 'small':
+createpdf = input('Create a pdf with all of the figures?: ')
+print('Images per page - Large:25, Medium:49, Small:64')
+size = input('Would you like small, medium, or large images?: ')
+if size == 's' or 'small' or 'Small':
 	images = 64
-elif size == 'm' or 'medium':
+elif size == 'm' or 'medium' or 'Medium':
 	images = 49
-elif size == 'l' or 'large':
+elif size == 'l' or 'large' or 'Large':
 	images = 25
 
 def gaussianfit(x,y,*args):
@@ -117,7 +110,7 @@ if numQSOs > images:
 else:
 	sizeplot = math.ceil(math.sqrt(numQSOs))
 				
-if createpdf == 'y':
+if createpdf == 'y' or 'yes' or 'Yes':
 	with PdfPages(folder+'.pdf') as pdf:
 		for imnum in range(numQSOs):
 			cutoff = (imnum+1)%images
@@ -133,13 +126,13 @@ if createpdf == 'y':
 			axis.imshow(QSO[imnum,:,:])
 			name = str(files[imnum])
 			name = name.replace('.fits', '')
-			axis.set_title(name + '('+str(imnum+1)+')', size=4)
+			axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
 			if cutoff == images or imnum == numQSOs-1:
 				pdf.savefig(allfigs)
-			if showimages == 'n':
+			if showimages == 'n' or 'no' or 'No':
 				plt.close('all')
 
-if createpdf == 'n':
+if createpdf == 'n' or 'no' or 'No':
 	for imnum in range(numQSOs):
 		cutoff = (imnum+1)%images
 		if cutoff == 1:
@@ -154,8 +147,8 @@ if createpdf == 'n':
 		axis.imshow(QSO[imnum,:,:])
 		name = str(files[imnum])
 		name = name.replace('.fits', '')
-		axis.set_title(name + '('+str(imnum+1)+')', size=4)
-		if showimages == 'n':
+		axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
+		if showimages == 'n' or 'no' or 'No':
 			plt.close('all')
 	
 
