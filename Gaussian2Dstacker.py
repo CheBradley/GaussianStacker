@@ -3,7 +3,6 @@ import sys
 import os
 import numpy as np
 import math
-#import matplotlib
 import matplotlib.pyplot as plt
 import scipy
 
@@ -23,16 +22,23 @@ folder = input("What is the name of the folder with the images?: ")
 sys.path.append("/" + folder)
 files = sorted(os.listdir(folder))
 showimages = input('Show individual images? (Not recommended for large datasets): ')
+if showimages == 'y' or showimages == 'yes' or showimages == 'Yes':
+	showimages == 'y'
+else:
+	showimages == 'n'
 
 createpdf = input('Create a pdf with all of the figures?: ')
-print('Images per page - Large:25, Medium:49, Small:64')
-size = input('Would you like small, medium, or large images?: ')
-if size == 's' or 'small' or 'Small':
-	images = 64
-elif size == 'm' or 'medium' or 'Medium':
-	images = 49
-elif size == 'l' or 'large' or 'Large':
-	images = 25
+if createpdf == 'y' or createpdf == 'yes' or createpdf == 'Yes':
+	createpdf = 'y'
+if createpdf == 'y' or showimages == 'y':
+	print('Images per page - Large:25, Medium:49, Small:64')
+	size = input('Would you like small, medium, or large images?: ')
+	if size == 's' or size == 'small' or size == 'Small':
+		images = 64
+	elif size == 'm' or size == 'medium' or size == 'Medium':
+		images = 49
+	elif size == 'l' or size =='large' or size == 'Large':
+		images = 25
 
 def gaussianfit(x,y,*args):
 	"""
@@ -104,13 +110,12 @@ for imnum in range(numQSOs):
 QSO = np.delete(QSO,badvals,0)
 			
 numQSOs = len(QSO)
-
-if numQSOs > images:
-	sizeplot = np.sqrt(images)
-else:
-	sizeplot = math.ceil(math.sqrt(numQSOs))
 				
-if createpdf == 'y' or createpdf == 'yes' or createpdf == 'Yes':
+if createpdf == 'y':
+	if numQSOs > images:
+		sizeplot = np.sqrt(images)
+	else:
+		sizeplot = math.ceil(math.sqrt(numQSOs))
 	with PdfPages(folder+'.pdf') as pdf:
 		for imnum in range(numQSOs):
 			cutoff = (imnum+1)%images
@@ -129,10 +134,15 @@ if createpdf == 'y' or createpdf == 'yes' or createpdf == 'Yes':
 			axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
 			if cutoff == images or imnum == numQSOs-1:
 				pdf.savefig(allfigs)
-			if showimages == 'n' or showimages == 'no' or showimages == 'No':
+			if showimages == 'n':
 				plt.close("all")
 
-if showimages == 'y' or showimages == 'yes' or showimages == 'Yes':
+if showimages == 'y':
+	if numQSOs > images:
+		sizeplot = np.sqrt(images)
+		print('sizeplot = ',sizeplot)
+	else:
+		sizeplot = math.ceil(math.sqrt(numQSOs))
 	for imnum in range(numQSOs):
 		cutoff = (imnum+1)%images
 		if cutoff == 1:
@@ -148,8 +158,6 @@ if showimages == 'y' or showimages == 'yes' or showimages == 'Yes':
 		name = str(files[imnum])
 		name = name.replace('.fits', '')
 		axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
-	
-
 
 
 guess_prms = [.001, sizeim/2, sizeim/2, 1.8, 1.8]
@@ -220,8 +228,16 @@ ax.plot_surface(X, Y, stacked_matrix, cmap = 'gist_heat', alpha = 0.5)
 ax.plot_surface(X, Y, new_fitted_gaussian,  cmap='plasma')
 ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_stacked_gaussian))
 
+oneimage = plt.figure()
+oneaxis = oneimage.add_subplot(111)
+
+oneaxis.imshow(stacked_matrix, cmap='gist_heat')
+oneaxis.grid(False)
+oneaxis.set_xticklabels([]) #hide labels
+oneaxis.set_yticklabels([])
+
 #creates a fits file from the stacked image
-hdu = fits.PrimaryHDU(fitted_stacked_gaussian)
+hdu = fits.PrimaryHDU(new_fitted_gaussian)
 hdu.writeto(folder + "stacked.fits")
 
 plt.show()
