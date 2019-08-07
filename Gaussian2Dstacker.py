@@ -193,16 +193,6 @@ param2 = (sigma_x_cov/sigma_x)*(sigma_x_cov/sigma_x)
 param3 = (sigma_y_cov/sigma_y)*(sigma_y_cov/sigma_y)
 Icov = I * np.sqrt(param1+param2+param3)
 
-print('sigma_x     = ',sigma_x)
-print('sigma_x_cov = ',sigma_x_cov)
-print('simga_y     = ',sigma_y)
-print('sigma_y_cov = ',sigma_y_cov)
-print('amplitude   = ',amplitude)
-print('ampcov err  = ',perr[0])
-print('Integral    = ',I)
-print('Icov        = ',Icov)
-print('I +- Icov   = ',I+Icov, I-Icov)
-
 xdata = np.vstack((X.ravel(), Y.ravel()))
 
 if sizeim%2==0:
@@ -217,7 +207,27 @@ nbounds = [[0,lowerbound,lowerbound,0,0],[sizeim,upperbound,upperbound,3,3]]
 newstackedoutput = fitgaussian(stacked_matrix, nbounds)
 new_fitted_gaussian = newstackedoutput[0] + Icov
 (amplitude, x, y, sigma_x, sigma_y) = newstackedoutput[1]
+newpcov = newstackedoutput[4]
 
+I = amplitude*sigma_x*sigma_y*2*math.pi 
+(ampcov, x_cov, y_cov, sigma_x_cov, sigma_y_cov) = np.diag(newpcov)
+perr = np.sqrt(np.diag(newpcov))
+param1 = (ampcov/amplitude)*(ampcov/amplitude)
+param2 = (sigma_x_cov/sigma_x)*(sigma_x_cov/sigma_x)
+param3 = (sigma_y_cov/sigma_y)*(sigma_y_cov/sigma_y)
+Icov = I * np.sqrt(param1+param2+param3)
+
+print('x           = ',x)
+print('y           = ',y)
+print('sigma_x     = ',sigma_x)
+print('sigma_x_cov = ',sigma_x_cov)
+print('simga_y     = ',sigma_y)
+print('sigma_y_cov = ',sigma_y_cov)
+print('amplitude   = ',amplitude)
+print('ampcov err  = ',perr[0])
+print('Integral    = ',I)
+print('Icov        = ',Icov)
+print('I +- Icov   = ',I+Icov, I-Icov)
 newfig = plt.figure()
 newax = newfig.add_subplot(111)
 
@@ -238,7 +248,7 @@ oneaxis.grid(False)
 oneaxis.set_xticklabels([]) #hide labels
 oneaxis.set_yticklabels([])
 
-#creates a fits file from the stacked image
+#creates a fits file from the stacked gaussian
 hdu = fits.PrimaryHDU(new_fitted_gaussian)
 hdu.writeto(folder + "stacked.fits")
 
