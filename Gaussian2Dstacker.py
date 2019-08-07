@@ -39,6 +39,12 @@ if createpdf == 'y' or showimages == 'y':
 		images = 49
 	elif size == 'l' or size =='large' or size == 'Large':
 		images = 25
+print('FIRST or Deep VLA images?')
+catalog = input('Type 1 for FIRST or 2 for Deep VLA: ')
+if catalog == '1':
+	sigmaguess = 2.123
+if catalog == '2':
+	sigmaguess = 0.764
 
 def gaussianfit(x,y,*args):
 	"""
@@ -67,7 +73,7 @@ def _gaussian(M, *args):
 	return array 
 
 
-def fitgaussian(matrix, guess_prms):
+def fitgaussian(matrix, bounds):
 	"""
 	This is the main function. It takes a matrix and, using the other 
 	functions, fits a 2D gaussian to it. It then returns that fit, the 
@@ -76,12 +82,12 @@ def fitgaussian(matrix, guess_prms):
 	"""
 	Y, X = np.indices(matrix.shape)
 	sizeim = len(matrix)
-	p0 = guess_prms
+	p0 = [np.max(matrix[13:20,13:20]),sizeim/2,sizeim/2,sigmaguess,sigmaguess]
 	
 	# We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
 	xdata = np.vstack((X.ravel(), Y.ravel()))
 	
-	popt, pcov = curve_fit(_gaussian, xdata, matrix.ravel(), p0, bounds=(0, [sizeim, sizeim/2+1,sizeim/2+1, 3,3]) ,maxfev=50000)
+	popt, pcov = curve_fit(_gaussian, xdata, matrix.ravel(), p0, bounds=bounds, maxfev=50000)
 	fitted_gaussian = gaussianfit(X, Y, *popt)
 	print('Fitted parameters:')
 	print(popt)
@@ -110,7 +116,8 @@ for imnum in range(numQSOs):
 QSO = np.delete(QSO,badvals,0)
 			
 numQSOs = len(QSO)
-				
+
+bounds = ([0, sizeim/2-0.5,sizeim/2-0.5,0,0], [sizeim, sizeim/2+0.5,sizeim/2+0.5, 3,3]) 			
 if createpdf == 'y':
 	if numQSOs > images:
 		sizeplot = np.sqrt(images)
@@ -159,12 +166,9 @@ if showimages == 'y':
 		name = name.replace('.fits', '')
 		axis.set_title(name + ' ('+str(imnum+1)+')', size=4)
 
-
-guess_prms = [.001, sizeim/2, sizeim/2, 1.8, 1.8]
-
 stacked_matrix = np.median(QSO, axis = 0)
 
-stacked_output = fitgaussian(stacked_matrix,guess_prms)
+stacked_output = fitgaussian(stacked_matrix, bounds)
 fitted_stacked_gaussian = stacked_output[0]
 (amplitude, x, y, sigma_x, sigma_y) = stacked_output[1]
 X = stacked_output[2]
@@ -201,20 +205,18 @@ print('I +- Icov   = ',I+Icov, I-Icov)
 
 xdata = np.vstack((X.ravel(), Y.ravel()))
 
-newparams = (amplitude, sizeim/2, sizeim/2, 1.8, 1.8,Icov)
-
 if sizeim%2==0:
-	lowerbound = sizeim/2-1
-	upperbound = sizeim/2+1
+	lowerbound = sizeim/2-0.5
+	upperbound = sizeim/2+0.5
 else:
 	lowerbound = math.floor(sizeim/2)
 	upperbound = math.ceil(sizeim/2)
 	
-nbounds = ([perr[0],lowerbound,lowerbound,0,0,0],[sizeim,upperbound,upperbound,1.8,1.8,amplitude])
+nbounds = [[0,lowerbound,lowerbound,0,0],[sizeim,upperbound,upperbound,3,3]]
 
-newpopt, newpcov = curve_fit(_gaussian, xdata, fitted_stacked_gaussian.ravel(), newparams, bounds = nbounds, maxfev = 50000) 
-
-new_fitted_gaussian = gaussianfit(X, Y, *newpopt) + Icov
+newstackedoutput = fitgaussian(stacked_matrix, nbounds)
+new_fitted_gaussian = newstackedoutput[0] + Icov
+(amplitude, x, y, sigma_x, sigma_y) = newstackedoutput[1]
 
 newfig = plt.figure()
 newax = newfig.add_subplot(111)
