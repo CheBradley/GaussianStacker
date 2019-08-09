@@ -76,7 +76,7 @@ def _gaussian(M, *args):
 def fitgaussian(matrix, bounds):
 	"""
 	This is the main function. It takes a matrix and, using the other 
-	functions, fits a 2D gaussian to it. It then returns that fit, the 
+	functions, fits a 2D gaussian. It then returns that fit, the 
 	optimized parameters, the covariance of the parameters, and two variables that contain information on 
 	the size of the matrix
 	"""
@@ -175,10 +175,11 @@ X = stacked_output[2]
 Y = stacked_output[3]
 pcov = stacked_output[4]
 
-stacked_fig = plt.figure()
-axstacked = stacked_fig.add_subplot(111)
-axstacked.imshow(stacked_matrix, origin='bottom', cmap='plasma')
-axstacked.contour(X, Y, fitted_stacked_gaussian, colors='w')
+plt.figure()
+plt.imshow(stacked_matrix, origin='bottom', cmap='plasma')
+plt.contour(X, Y, fitted_stacked_gaussian, colors='w')
+plt.grid(False)
+plt.axis('off')
 
 stacked3Dfig = plt.figure()
 ax3D = stacked3Dfig.gca(projection='3d')
@@ -202,6 +203,7 @@ else:
 	lowerbound = math.floor(sizeim/2)
 	upperbound = math.ceil(sizeim/2)
 	
+#creates another gaussian with a floor so that it sits above most of the noise
 nbounds = [[0,lowerbound,lowerbound,0,0],[sizeim,upperbound,upperbound,3,3]]
 
 newstackedoutput = fitgaussian(stacked_matrix, nbounds)
@@ -228,11 +230,13 @@ print('ampcov err  = ',perr[0])
 print('Integral    = ',I)
 print('Icov        = ',Icov)
 print('I +- Icov   = ',I+Icov, I-Icov)
-newfig = plt.figure()
-newax = newfig.add_subplot(111)
 
-newax.imshow(stacked_matrix, cmap = 'plasma')
-newax.contour(X, Y, new_fitted_gaussian, colors='w')
+
+plt.figure()
+plt.imshow(stacked_matrix, cmap = 'plasma')
+plt.contour(X, Y, new_fitted_gaussian, colors='w')
+plt.grid(False)
+plt.axis('off')
 
 new3Dfig = plt.figure()
 ax = new3Dfig.gca(projection='3d')
@@ -240,13 +244,10 @@ ax.plot_surface(X, Y, stacked_matrix, cmap = 'gist_heat', alpha = 0.5)
 ax.plot_surface(X, Y, new_fitted_gaussian,  cmap='plasma')
 ax.set_zlim(stacked_matrix.min(),np.max(fitted_stacked_gaussian)+np.min(fitted_stacked_gaussian))
 
-oneimage = plt.figure()
-oneaxis = oneimage.add_subplot(111)
-
-oneaxis.imshow(stacked_matrix, cmap='gist_heat')
-oneaxis.grid(False)
-oneaxis.set_xticklabels([]) #hide labels
-oneaxis.set_yticklabels([])
+plt.figure()
+plt.imshow(stacked_matrix, cmap='gist_heat')
+plt.grid(False)
+plt.axis('off')
 
 #creates a fits file from the stacked gaussian
 hdu = fits.PrimaryHDU(new_fitted_gaussian)
